@@ -1,10 +1,10 @@
-import {Invoice, Performance, Play, Plays} from "./types";
+import {Invoice, Performance, Plays} from "./types";
 
 export class StatementPrinter {
     private _plays: Plays;
 
 
-    constructor(plays:Plays) {
+    constructor(plays: Plays) {
         this._plays = plays;
     }
 
@@ -12,35 +12,40 @@ export class StatementPrinter {
         let totalAmount = 0;
         let volumeCredits = 0;
         let result = `Statement for ${invoice.customer}\n`;
-        const format = new Intl.NumberFormat("en-US",
+
+        for (let perf of invoice.performances) {
+            volumeCredits += this.volumeCreditsFor(perf);
+            // print line for this order
+            result += ` ${this.playFor(perf).name}: ${this.usd(this.amountFor(perf) / 100)} (${perf.audience} seats)\n`;
+            totalAmount += this.amountFor(perf);
+        }
+        result += `Amount owed is ${this.usd(totalAmount / 100)}\n`;
+        result += `You earned ${volumeCredits} credits\n`;
+        return result;
+    }
+
+    private usd(aNumber: number) {
+        return new Intl.NumberFormat("en-US",
             {
                 style: "currency", currency: "USD",
                 minimumFractionDigits: 2
-            }).format;
+            }).format(aNumber);
+    }
 
-        for (let perf of invoice.performances) {
-            const play = this.playFor(perf);
-            let thisAmount = this.amountFor(play, perf);
-            // add volume credits
-            volumeCredits += Math.max(perf.audience - 30, 0);
-            // add extra credit for every ten comedy attendees
-            if ("comedy" === play.type) volumeCredits += Math.floor(perf.audience / 5);
-            // print line for this order
-            result += ` ${play.name}: ${format(thisAmount / 100)} (${perf.audience} seats)\n`;
-            totalAmount += thisAmount;
-        }
-        result += `Amount owed is ${format(totalAmount / 100)}\n`;
-        result += `You earned ${volumeCredits} credits\n`;
-        return result;
+    private volumeCreditsFor(perf: Performance) {
+        // add volume credits
+        let volumeCredits = Math.max(perf.audience - 30, 0);
+        if ("comedy" === this.playFor(perf).type) volumeCredits += Math.floor(perf.audience / 5);
+        return volumeCredits;
     }
 
     private playFor(perf: Performance) {
         return this._plays[perf.playID];
     }
 
-    private amountFor(play: Play, perf: Performance) {
+    private amountFor(perf: Performance) {
         let thisAmount = 0;
-        switch (play.type) {
+        switch (this.playFor(perf).type) {
             case "tragedy":
                 thisAmount = 40000;
                 if (perf.audience > 30) {
@@ -55,7 +60,7 @@ export class StatementPrinter {
                 thisAmount += 300 * perf.audience;
                 break;
             default:
-                throw new Error(`unknown type: ${play.type}`);
+                throw new Error(`unknown type: ${this.playFor(perf).type}`);
         }
         return thisAmount;
     }
