@@ -6,13 +6,13 @@ import path from "path";
 import expect from "expect.js";
 
 describe('StatementTest', () => {
-    let statementPrinter = new StatementPrinter();
+    let statementPrinter = new StatementPrinter(plays);
 
     before(() => {
     });
 
     it('shouldOutputStatement', () => {
-        VerifyOutput(statementPrinter.statement(invoices[0], plays), "outputStatement");
+        VerifyOutput(statementPrinter.statement(invoices[0]), "outputStatement");
     });
 
 
