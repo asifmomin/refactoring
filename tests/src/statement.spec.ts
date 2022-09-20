@@ -1,4 +1,4 @@
-import { statement} from '../../src/statement'
+import {StatementPrinter} from '../../src/statement'
 import invoices from '../../src/invoices.json'
 import plays from '../../src/plays.json'
 import fs from "fs";
@@ -6,12 +6,13 @@ import path from "path";
 import expect from "expect.js";
 
 describe('StatementTest', () => {
+    let statementPrinter = new StatementPrinter();
 
     before(() => {
     });
 
     it('shouldOutputStatement', () => {
-        VerifyOutput(statement(invoices[0], plays), "outputStatement");
+        VerifyOutput(statementPrinter.statement(invoices[0], plays), "outputStatement");
     });
 
 
